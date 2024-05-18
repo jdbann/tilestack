@@ -15,14 +15,13 @@ func main() {
 
 	reg := tilestack.NewRegistry()
 	reg.Load("FloorCentrePlain", 16)
-	reg.Load("FloorCentrePattern", 16)
+	reg.Load("Table", 8)
+	reg.Load("Chair", 12)
 
-	tileMap := [][]int{
-		{0, 0, 0},
-		{0, 1, 1},
-		{0, 1, 1},
-		{0, 1, 1},
-	}
+	tileMap := tilestack.NewMap(3, 3, 3)
+	tileMap.Rect(0, 2, 0, 2, 0, 0)
+	tileMap.Set(1, 1, 1, 1)
+	tileMap.Set(1, 2, 1, 2)
 
 	for !rl.WindowShouldClose() {
 		cameraAngle := rl.GetMousePosition().X * rl.Pi * 2 / float32(screenWidth)
