@@ -8,7 +8,7 @@ import (
 )
 
 type Registry struct {
-	tiles    []Tile
+	tiles    []TileDefinition
 	tileSize float32
 }
 
@@ -21,7 +21,7 @@ func NewRegistry() *Registry {
 func (r *Registry) Load(name string, steps int32) int {
 	fileName := fmt.Sprintf("assets/%s_strip%d.png", name, steps)
 	texture := rl.LoadTexture(fileName)
-	r.tiles = append(r.tiles, Tile{
+	r.tiles = append(r.tiles, TileDefinition{
 		texture: texture,
 		frames:  steps,
 		size: rl.Vector2{
@@ -32,7 +32,7 @@ func (r *Registry) Load(name string, steps int32) int {
 	return len(r.tiles) - 1
 }
 
-func (r *Registry) DrawMap(tiles Map, angle float32) {
+func (r *Registry) DrawMap(tiles TileMap, angle float32) {
 	x, y, z := tiles.Size()
 	origin := rl.Vector3{X: float32(x-1) / -2 * r.tileSize, Y: float32(y-1) / -2 * r.tileSize, Z: float32(z-1) / -2 * r.tileSize}
 
@@ -71,12 +71,12 @@ func (r *Registry) DrawMap(tiles Map, angle float32) {
 	}
 }
 
-func (r *Registry) DrawTile(idx int, p rl.Vector3, angle, step float32) {
-	if idx == -1 {
+func (r *Registry) DrawTile(t Tile, p rl.Vector3, angle, step float32) {
+	if t.index == -1 {
 		return
 	}
 
-	tile := r.tiles[idx]
+	tile := r.tiles[t.index]
 	origin := rl.NewVector2(tile.size.X/2, tile.size.Y/2)
 
 	for frame := float32(0); frame < float32(tile.frames); frame++ {
@@ -85,13 +85,13 @@ func (r *Registry) DrawTile(idx int, p rl.Vector3, angle, step float32) {
 			rl.NewRectangle(frame*tile.size.X, 0, tile.size.X, tile.size.Y),
 			rl.NewRectangle(p.X, p.Y-(p.Z*step)-(frame*step), tile.size.X, tile.size.Y),
 			origin,
-			angle*rl.Rad2deg,
+			(angle+float32(t.dir))*rl.Rad2deg,
 			rl.White,
 		)
 	}
 }
 
-type Tile struct {
+type TileDefinition struct {
 	texture rl.Texture2D
 	frames  int32
 	size    rl.Vector2
@@ -118,38 +118,53 @@ func iterator(from, to int) (func() int, func() bool) {
 	return nextFn, doneFn
 }
 
-type Map [][][]int
+type TileDirection float32
 
-func NewMap(x, y, z int) Map {
-	m := make(Map, z)
+const (
+	North TileDirection = 0
+	East                = rl.Pi / 2
+	South               = rl.Pi
+	West                = 3 * rl.Pi / 2
+)
+
+type Tile struct {
+	index int
+	dir   TileDirection
+}
+
+type TileMap [][][]Tile
+
+func NewTileMap(x, y, z int) TileMap {
+	m := make(TileMap, z)
 	for cz := 0; cz < z; cz++ {
-		m[cz] = make([][]int, y)
+		m[cz] = make([][]Tile, y)
 		for cy := 0; cy < y; cy++ {
-			m[cz][cy] = make([]int, x)
+			m[cz][cy] = make([]Tile, x)
 			for cx := 0; cx < x; cx++ {
-				m[cz][cy][cx] = -1
+				m[cz][cy][cx] = Tile{-1, 0}
 			}
 		}
 	}
 	return m
 }
 
-func (m Map) Set(x, y, z, idx int) {
-	m[z][y][x] = idx
+func (m TileMap) Set(x, y, z, idx int, dir TileDirection) {
+	m[z][y][x].index = idx
+	m[z][y][x].dir = dir
 }
 
-func (m Map) At(x, y, z int) int {
+func (m TileMap) At(x, y, z int) Tile {
 	return m[z][y][x]
 }
 
-func (m Map) Rect(x0, x1, y0, y1, z, idx int) {
+func (m TileMap) Rect(x0, x1, y0, y1, z, idx int) {
 	for y := y0; y <= y1; y++ {
 		for x := x0; x <= x1; x++ {
-			m.Set(x, y, z, idx)
+			m.Set(x, y, z, idx, 0)
 		}
 	}
 }
 
-func (m Map) Size() (int, int, int) {
+func (m TileMap) Size() (int, int, int) {
 	return len(m[0][0]), len(m[0]), len(m)
 }

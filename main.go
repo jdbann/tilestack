@@ -19,10 +19,11 @@ func main() {
 	reg.Load("Table", 8)
 	reg.Load("Chair", 12)
 
-	tileMap := tilestack.NewMap(7, 9, 3)
+	tileMap := tilestack.NewTileMap(7, 9, 3)
 	tileMap.Rect(0, 6, 0, 8, 0, 0)
-	tileMap.Set(1, 1, 1, 1)
-	tileMap.Set(1, 2, 1, 2)
+	tileMap.Set(1, 1, 1, 1, 0)
+	tileMap.Set(1, 2, 1, 2, tilestack.North)
+	tileMap.Set(2, 1, 1, 2, tilestack.West)
 
 	virtualScreen := rl.LoadRenderTexture(virtualWidth, virtualHeight)
 	virtualScreenRec := rl.NewRectangle(0, 0, float32(virtualWidth), -float32(virtualHeight))
