@@ -157,12 +157,29 @@ func (m TileMap) At(x, y, z int) Tile {
 	return m[z][y][x]
 }
 
-func (m TileMap) Rect(x0, x1, y0, y1, z, idx int) {
+func (m TileMap) Rect(x0, x1, y0, y1, z, idx int, dir TileDirection) {
 	for y := y0; y <= y1; y++ {
 		for x := x0; x <= x1; x++ {
-			m.Set(x, y, z, idx, 0)
+			m.Set(x, y, z, idx, dir)
 		}
 	}
+}
+
+func (m TileMap) RectWithEdges(x0, x1, y0, y1, z, centerIdx, edgeIdx, cornerIdx int) {
+	// Middle
+	m.Rect(x0+1, x1-1, y0+1, y1-1, z, centerIdx, North)
+
+	// Edges
+	m.Rect(x0+1, x1-1, y0, y0, z, edgeIdx, North)
+	m.Rect(x1, x1, y0+1, y1-1, z, edgeIdx, East)
+	m.Rect(x0+1, x1-1, y1, y1, z, edgeIdx, South)
+	m.Rect(x0, x0, y0+1, y1-1, z, edgeIdx, West)
+
+	// Corners
+	m.Set(x0, y0, z, cornerIdx, North)
+	m.Set(x1, y0, z, cornerIdx, East)
+	m.Set(x1, y1, z, cornerIdx, South)
+	m.Set(x0, y1, z, cornerIdx, West)
 }
 
 func (m TileMap) Size() (int, int, int) {
