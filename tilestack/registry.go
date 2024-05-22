@@ -72,11 +72,11 @@ func (r *Registry) DrawMap(tiles TileMap, angle float32) {
 }
 
 func (r *Registry) DrawTile(t Tile, p rl.Vector3, angle, step float32) {
-	if t.index == -1 {
+	if t.Index == -1 {
 		return
 	}
 
-	tile := r.tiles[t.index]
+	tile := r.tiles[t.Index]
 	origin := rl.NewVector2(tile.size.X/2, tile.size.Y/2)
 
 	for frame := float32(0); frame < float32(tile.frames); frame++ {
@@ -85,7 +85,7 @@ func (r *Registry) DrawTile(t Tile, p rl.Vector3, angle, step float32) {
 			rl.NewRectangle(frame*tile.size.X, 0, tile.size.X, tile.size.Y),
 			rl.NewRectangle(p.X, p.Y-(p.Z*step)-(frame*step), tile.size.X, tile.size.Y),
 			origin,
-			(angle+float32(t.dir))*rl.Rad2deg,
+			(angle+float32(t.Dir)*rl.Pi/2)*rl.Rad2deg,
 			rl.White,
 		)
 	}
@@ -122,14 +122,14 @@ type TileDirection float32
 
 const (
 	North TileDirection = 0
-	East                = rl.Pi / 2
-	South               = rl.Pi
-	West                = 3 * rl.Pi / 2
+	East                = 1
+	South               = 2
+	West                = 3
 )
 
 type Tile struct {
-	index int
-	dir   TileDirection
+	Index int
+	Dir   TileDirection
 }
 
 type TileMap [][][]Tile
@@ -149,8 +149,8 @@ func NewTileMap(x, y, z int) TileMap {
 }
 
 func (m TileMap) Set(x, y, z, idx int, dir TileDirection) {
-	m[z][y][x].index = idx
-	m[z][y][x].dir = dir
+	m[z][y][x].Index = idx
+	m[z][y][x].Dir = dir
 }
 
 func (m TileMap) At(x, y, z int) Tile {
